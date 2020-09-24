@@ -14,7 +14,6 @@ if (isset($_POST['save'])) { // if save button on the form is clicked
 
     // destination of the file on the server
     $destination = 'uploads/' . $filename;
-
     // get the file extension
     $extension = pathinfo($filename, PATHINFO_EXTENSION);
 
@@ -22,19 +21,21 @@ if (isset($_POST['save'])) { // if save button on the form is clicked
     $file = $_FILES['myfile']['tmp_name'];
     $size = $_FILES['myfile']['size'];
 
-    if (!in_array($extension, ['zip', 'pdf', 'docx', 'txt'])) {
-        echo "You file extension must be .zip, .pdf, .docx or .txt";
+    if (!in_array($extension, ['txt'])) {
+        echo "You file extension must be .txt";
     } elseif ($_FILES['myfile']['size'] > 1000000) { // file shouldn't be larger than 1Megabyte
         echo "File too large!";
     } else {
         // move the uploaded (temporary) file to the specified destination
-        if (move_uploaded_file($file, $destination)) {
-			
-			$wordCount = str_word_count(file_get_contents($destination));
+        if (copy($file, $destination)) {
+
+	    $wordCount = str_word_count(file_get_contents($destination));
             $sql = "INSERT INTO files (name, size, word_count) VALUES ('$filename', $size, $wordCount)";
             if (mysqli_query($link, $sql)) {
                 echo "File uploaded successfully";
             }
+            else{
+		echo "Failed!!!";}
         } else {
             echo "Failed to upload file.";
         }
@@ -61,10 +62,7 @@ if (isset($_GET['file_id'])) {
         header('Content-Length: ' . filesize('uploads/' . $file['name']));
         readfile('uploads/' . $file['name']);
 
-        // Now update downloads count
-      //  $newCount = $file['downloads'] + 1;
-      //  $updateQuery = "UPDATE files SET downloads=$newCount WHERE id=$id";
-      //  mysqli_query($conn, $updateQuery);
+      
         exit;
     }
 
